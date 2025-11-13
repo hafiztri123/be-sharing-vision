@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-sv
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PWD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PWD}
+    command: --default-authentication-plugin=mysql_native_password #Development purposes
+    ports:
+      - "${DB_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
