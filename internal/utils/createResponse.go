@@ -11,6 +11,17 @@ type Response struct {
 	Data    any    `json:"data,omitempty"`
 }
 
+type ValidationErrorPayload struct {
+	Key     string `json:"key"`
+	Message string `json:"message"`
+}
+
+type PaginationResponse struct {
+	Data any `json:"data"`
+	TotalRecords int `json:"totalRecords`
+}
+
+
 func NewJSONResponse(w http.ResponseWriter, message string, statusCode int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

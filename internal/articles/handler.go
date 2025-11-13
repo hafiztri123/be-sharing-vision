@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"hafiztri123/be-sharing-vision/internal/utils"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -16,11 +17,7 @@ func NewHandler(r *Repository) *Handler {
 	}
 }
 
-func (re *Repository) CreateRepositoryHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		utils.NewJSONResponse(w, "Method Not Allowed", http.StatusMethodNotAllowed, nil)
-		return
-	}
+func (h *Handler) CreateArticleHandler(w http.ResponseWriter, r *http.Request) {
 
 	var dto CreateArticleDTO
 
@@ -30,10 +27,115 @@ func (re *Repository) CreateRepositoryHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = re.InsertArticle(dto)
-	if err != nil {
-		utils.NewJSONResponse(w, "Internal Server Error", http.StatusInternalServerError, nil)
+	validationErrors := dto.Validate()
+	if validationErrors != nil {
+		utils.NewJSONResponse(w, "Bad Request", http.StatusBadRequest, validationErrors)
+		return
 	}
 
-	utils.NewJSONResponse(w, "Success", http.StatusOK, nil)
+	err = h.Repo.InsertArticle(dto)
+	if err != nil {
+		utils.NewJSONResponse(w, "Internal Server Error", http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.NewJSONResponse(w, "Article created", http.StatusCreated, nil)
+}
+
+func (h *Handler) GetArticlesHandler(w http.ResponseWriter, r *http.Request) {
+
+	pagiationParams, validationErrors := utils.ExtractPathValue(r)
+	if validationErrors != nil {
+		utils.NewJSONResponse(w, "Bad Request", http.StatusBadRequest, validationErrors)
+		return
+	}
+
+	result, err := h.Repo.GetArticlesPaginated(*pagiationParams)
+	if err != nil {
+		utils.NewJSONResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.NewJSONResponse(w, "Get Articles", http.StatusOK, result)
+}
+
+func (h *Handler) GetArticleHandler(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+
+	if err != nil {
+		utils.NewJSONResponse(
+			w, "Bad Request", http.StatusBadRequest, nil,
+		)
+		return
+	}
+
+	result, err := h.Repo.GetArticle(id)
+	if err != nil {
+		if err.Error() == "Data not found" {
+			utils.NewJSONResponse(w, "Data not found", http.StatusNotFound, nil)
+			return
+		}
+		
+		utils.NewJSONResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.NewJSONResponse(w, "Get Article", http.StatusOK, result)
+}
+
+func (h *Handler) UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
+
+	var dto PutArticleDTO
+
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		utils.NewJSONResponse(w, "Bad Request", http.StatusBadRequest, nil)
+		return
+	}
+
+	if validationErrors := dto.Validate(); validationErrors != nil {
+		utils.NewJSONResponse(w, "Bad Request", http.StatusBadRequest, validationErrors)
+		return
+	}
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		utils.NewJSONResponse(w, "Id not valid", http.StatusBadRequest, nil)
+		return
+	}
+
+	err = h.Repo.UpdateArticle(id, dto)
+	if err != nil {
+		if err.Error() == "Data not found" {
+			utils.NewJSONResponse(w, "Data not found", http.StatusNotFound, nil)
+			return
+		}
+
+		utils.NewJSONResponse(w, "Internal Server Error", http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.NewJSONResponse(w, "Article updated", http.StatusOK, nil)
+}
+
+func (h *Handler) DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		utils.NewJSONResponse(w, "Invalid Id", http.StatusBadRequest, nil)
+		return
+	}
+
+	err = h.Repo.DeleteArticle(id)
+	if err != nil {
+		if err.Error() == "Data not found" {
+			utils.NewJSONResponse(w, "Data not found", http.StatusNotFound, nil)
+			return
+		}
+
+		utils.NewJSONResponse(w, "Internal Server Error", http.StatusInternalServerError, nil)
+		return
+	}
+
+	utils.NewJSONResponse(w, "Article Deleted", http.StatusNoContent, nil)
 }
