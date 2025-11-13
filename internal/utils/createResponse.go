@@ -18,7 +18,7 @@ type ValidationErrorPayload struct {
 
 type PaginationResponse struct {
 	Data any `json:"data"`
-	TotalRecords int `json:"totalRecords`
+	TotalRecords int `json:"totalRecords"`
 }
 
 
