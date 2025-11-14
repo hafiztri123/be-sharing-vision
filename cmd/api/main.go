@@ -28,12 +28,12 @@ func main() {
 
 	mux := router.NewRouter(articleHandler)
 
-
+	cors := router.EnableCors(mux)
 
 
 	fmt.Println("Database connected")
 
-	http.ListenAndServe(fmt.Sprintf(":%s", utils.GetMandatoryEnv("APP_PORT")), mux)
+	http.ListenAndServe(fmt.Sprintf(":%s", utils.GetMandatoryEnv("APP_PORT")), cors)
 
 
 }

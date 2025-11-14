@@ -50,7 +50,9 @@ func (h *Handler) GetArticlesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.Repo.GetArticlesPaginated(*pagiationParams)
+	status := r.URL.Query().Get("status")
+
+	result, err := h.Repo.GetArticlesPaginated(*pagiationParams, status)
 	if err != nil {
 		utils.NewJSONResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return

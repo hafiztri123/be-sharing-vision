@@ -14,5 +14,23 @@ func NewRouter(h *articles.Handler) *http.ServeMux {
 	mux.HandleFunc("DELETE /api/v1/article/{id}", h.DeleteArticleHandler)
 	mux.HandleFunc("POST /api/v1/article", h.CreateArticleHandler)
 
+	
+
 	return mux
+}
+
+func EnableCors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+
 }

@@ -10,4 +10,7 @@ type CreateArticleDTO struct {
 }
 
 type PutArticleDTO = CreateArticleDTO
-type Article = CreateArticleDTO
+type Article struct {
+	Id string `json:"id"`
+	CreateArticleDTO
+} 
