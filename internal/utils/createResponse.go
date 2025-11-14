@@ -18,7 +18,12 @@ type ValidationErrorPayload struct {
 
 type PaginationResponse struct {
 	Data any `json:"data"`
+	PaginationMeta
+}
+
+type PaginationMeta struct {
 	TotalRecords int `json:"totalRecords"`
+	TotalPages int `json:"totalPages"`
 }
 
 

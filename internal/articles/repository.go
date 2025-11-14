@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"hafiztri123/be-sharing-vision/internal/utils"
+	"math"
 	"time"
 )
 
@@ -68,7 +69,7 @@ func (r *Repository) GetArticlesPaginated(queryParams utils.PaginationParams) (*
 	}
 
 	if rows.Err() != nil {
-		return nil, err
+		return nil, rows.Err()
 	}
 
 	countQuery := `
@@ -80,9 +81,17 @@ func (r *Repository) GetArticlesPaginated(queryParams utils.PaginationParams) (*
 
 	err = r.db.QueryRowContext(ctx, countQuery).Scan(&totalCount)
 
+	totalPages := 0
+	if totalCount > 0 {
+		totalPages = int(math.Ceil(float64(totalCount) / float64(queryParams.Limit)))
+	}
+
 	return &utils.PaginationResponse{
 		Data:         articles,
-		TotalRecords: totalCount,
+		PaginationMeta: utils.PaginationMeta{
+			TotalRecords: totalCount,
+			TotalPages: totalPages,
+		},
 	}, nil
 }
 
